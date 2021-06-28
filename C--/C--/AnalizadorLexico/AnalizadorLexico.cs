@@ -39,12 +39,12 @@ namespace C__.AnalizadorLexico
         // /////////////////////////////////////////////
 
         // Funcion that obtains all the tokens in the source code
-        public Stack<Token> getTokens(string file)
+        public Queue<Token> getTokens(string file)
         {
             clearStructures(); // Every time we call this function clear all the structures for new use
             addList(); // Initialize the first list of the structures that use List<List<char>>
 
-            Stack<Token> tokenStack = new Stack<Token>(); // Create the stack of token tha will be passed to the sintactic analyzer
+            Queue<Token> tokenQueue = new Queue<Token>(); // Create the queue of token tha will be passed to the sintactic analyzer
 
             char[] sourceCode = file.ToCharArray(); //Char array to work with
             int line = 1;   // Number of current line
@@ -80,8 +80,8 @@ namespace C__.AnalizadorLexico
                     words[wordPosi].Add(ch);   // Store the char into the list
                     if (!Char.IsLetter(nextch) && !dl.isAllowedChar(nextch.ToString())) // Word formation completed, update index and store number of line
                     {
-                        // Once the word is formed we generate the token and add it to the token stack
-                        tokenStack.Push(keywordOrIdentifierTokenGenerator(words[wordPosi], line, column));
+                        // Once the word is formed we generate the token and add it to the token queue
+                        tokenQueue.Enqueue(keywordOrIdentifierTokenGenerator(words[wordPosi], line, column));
                         wordPosi++;
                         words.Add(new List<char>());
                     }
@@ -106,8 +106,8 @@ namespace C__.AnalizadorLexico
                     }
                     else if (!Char.IsNumber(nextch))    // Number formation completed, update index and store number of line
                     {
-                        // Once the number is formed we generate the token and add it to the token stack
-                        tokenStack.Push(numberTokenGenerator(numbers[numberPosi], line, column));
+                        // Once the number is formed we generate the token and add it to the token queue
+                        tokenQueue.Enqueue(numberTokenGenerator(numbers[numberPosi], line, column));
                         numberPosi++;
                         numbers.Add(new List<char>());
                     }
@@ -125,7 +125,7 @@ namespace C__.AnalizadorLexico
                             i++;
                             column++;
                         }
-                        tokenStack.Push(operatorTokenGenerator(operators[operatorPosi], line, column));
+                        tokenQueue.Enqueue(operatorTokenGenerator(operators[operatorPosi], line, column));
                         operatorPosi++;
                         operators.Add(new List<char>());
                     }
@@ -138,7 +138,7 @@ namespace C__.AnalizadorLexico
                             i++;
                             column++;
                         }
-                        tokenStack.Push(operatorTokenGenerator(operators[operatorPosi], line, column));
+                        tokenQueue.Enqueue(operatorTokenGenerator(operators[operatorPosi], line, column));
                         operatorPosi++;
                         operators.Add(new List<char>());
                     }
@@ -151,7 +151,7 @@ namespace C__.AnalizadorLexico
                             i++;
                             column++;
                         }
-                        tokenStack.Push(operatorTokenGenerator(operators[operatorPosi], line, column));
+                        tokenQueue.Enqueue(operatorTokenGenerator(operators[operatorPosi], line, column));
                         operatorPosi++;
                         operators.Add(new List<char>());
                     }
@@ -164,13 +164,13 @@ namespace C__.AnalizadorLexico
                             i++;
                             column++;
                         }
-                        tokenStack.Push(operatorTokenGenerator(operators[operatorPosi], line, column));
+                        tokenQueue.Enqueue(operatorTokenGenerator(operators[operatorPosi], line, column));
                         operatorPosi++;
                         operators.Add(new List<char>());
                     }
                     else
                     {
-                        tokenStack.Push(operatorTokenGenerator(operators[operatorPosi], line, column));
+                        tokenQueue.Enqueue(operatorTokenGenerator(operators[operatorPosi], line, column));
                         operatorPosi++;
                         operators.Add(new List<char>());
                     }
@@ -180,7 +180,7 @@ namespace C__.AnalizadorLexico
                 else if (dl.isDelimiter(ch.ToString()))
                 {
                     delimiters[delimiterPosi].Add(ch);
-                    tokenStack.Push(DelimiterTokenGenerator(delimiters[delimiterPosi], line, column));
+                    tokenQueue.Enqueue(DelimiterTokenGenerator(delimiters[delimiterPosi], line, column));
                     delimiterPosi++;
                     delimiters.Add(new List<char>());
                 }
@@ -196,7 +196,7 @@ namespace C__.AnalizadorLexico
                             i++;
                             column++;
                         }
-                        tokenStack.Push(relationalOperatorTokenGenerator(relationalOperators[relationalOperatorPosi], line, column));
+                        tokenQueue.Enqueue(relationalOperatorTokenGenerator(relationalOperators[relationalOperatorPosi], line, column));
                         relationalOperatorPosi++;
                         relationalOperators.Add(new List<char>());  
                     }
@@ -209,7 +209,7 @@ namespace C__.AnalizadorLexico
                             i++;
                             column++;
                         }
-                        tokenStack.Push(relationalOperatorTokenGenerator(relationalOperators[relationalOperatorPosi], line, column));
+                        tokenQueue.Enqueue(relationalOperatorTokenGenerator(relationalOperators[relationalOperatorPosi], line, column));
                         relationalOperatorPosi++;
                         relationalOperators.Add(new List<char>());
                     }
@@ -222,7 +222,7 @@ namespace C__.AnalizadorLexico
                             i++;
                             column++;
                         }
-                        tokenStack.Push(relationalOperatorTokenGenerator(relationalOperators[relationalOperatorPosi], line, column));
+                        tokenQueue.Enqueue(relationalOperatorTokenGenerator(relationalOperators[relationalOperatorPosi], line, column));
                         relationalOperatorPosi++;
                         relationalOperators.Add(new List<char>());
                     }
@@ -235,7 +235,7 @@ namespace C__.AnalizadorLexico
                             i++;
                             column++;
 
-                            tokenStack.Push(relationalOperatorTokenGenerator(relationalOperators[relationalOperatorPosi], line, column));
+                            tokenQueue.Enqueue(relationalOperatorTokenGenerator(relationalOperators[relationalOperatorPosi], line, column));
                             relationalOperatorPosi++;
                             relationalOperators.Add(new List<char>());
                         }
@@ -252,7 +252,7 @@ namespace C__.AnalizadorLexico
                             i++;
                             column++;
 
-                            tokenStack.Push(relationalOperatorTokenGenerator(relationalOperators[relationalOperatorPosi], line, column));
+                            tokenQueue.Enqueue(relationalOperatorTokenGenerator(relationalOperators[relationalOperatorPosi], line, column));
                             relationalOperatorPosi++;
                             relationalOperators.Add(new List<char>());
                         }
@@ -274,7 +274,7 @@ namespace C__.AnalizadorLexico
 
             if (isValid)
             {
-                return tokenStack;
+                return tokenQueue;
             }
             else
             {
