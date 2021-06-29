@@ -7,10 +7,10 @@ namespace C__.UniversalModels
     public class Token
     {
         public string token { get; set; }
-        public string tipoToken { get; set; }
-        public string lexema { get; set; }
-        public int linea { get; set; }
-        public int columna { get; set; }
+        public string tokenType { get; set; }
+        public string lexeme { get; set; }
+        public int line { get; set; }
+        public int column { get; set; }
         public Token()
         {
         }

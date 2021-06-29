@@ -7,7 +7,6 @@ namespace C__.AnalizadorLexico
 {
     public class AnalizadorLexico
     {
-
         // ===== Class that contains the scanner  ===== //
         DefinicionesLexicas dl;
         public AnalizadorLexico()  //Constructor
@@ -45,6 +44,7 @@ namespace C__.AnalizadorLexico
             addList(); // Initialize the first list of the structures that use List<List<char>>
 
             Queue<Token> tokenQueue = new Queue<Token>(); // Create the queue of token tha will be passed to the sintactic analyzer
+            Queue<Token> errorQueue = new Queue<Token>();
 
             char[] sourceCode = file.ToCharArray(); //Char array to work with
             int line = 1;   // Number of current line
@@ -81,9 +81,20 @@ namespace C__.AnalizadorLexico
                     if (!Char.IsLetter(nextch) && !dl.isAllowedChar(nextch.ToString())) // Word formation completed, update index and store number of line
                     {
                         // Once the word is formed we generate the token and add it to the token queue
-                        tokenQueue.Enqueue(keywordOrIdentifierTokenGenerator(words[wordPosi], line, column));
-                        wordPosi++;
-                        words.Add(new List<char>());
+                        Token tk = keywordOrIdentifierTokenGenerator(words[wordPosi], line, column);
+                        if (tk.token != "Lexycal Error")
+                        {
+                            tokenQueue.Enqueue(tk);
+                            wordPosi++;
+                            words.Add(new List<char>());
+                        }
+                        else
+                        {
+                            errorQueue.Enqueue(tk);
+                            wordPosi++;
+                            words.Add(new List<char>());
+                        }
+
                     }
                 }
 
@@ -102,7 +113,14 @@ namespace C__.AnalizadorLexico
                         // error on the formation of number
                         errorMessage += "Bad formation of a number\n";
                         errorMessage += $" ==>> bad number in position (Row, Column):\t ({line}, {column})\n\n";
-                        isValid = false;
+
+                        numbers[numberPosi].Add(nextch); // If the next char is a point store it into the numbers list
+                        errorQueue.Enqueue(errorNumberTokenGenerator(numbers[numberPosi], line, column));
+
+                        numberPosi++;
+                        numbers.Add(new List<char>());
+                        i++;
+                        column++;
                     }
                     else if (!Char.IsNumber(nextch))    // Number formation completed, update index and store number of line
                     {
@@ -198,7 +216,7 @@ namespace C__.AnalizadorLexico
                         }
                         tokenQueue.Enqueue(relationalOperatorTokenGenerator(relationalOperators[relationalOperatorPosi], line, column));
                         relationalOperatorPosi++;
-                        relationalOperators.Add(new List<char>());  
+                        relationalOperators.Add(new List<char>());
                     }
                     else if (ch == '<')
                     {
@@ -239,8 +257,11 @@ namespace C__.AnalizadorLexico
                             relationalOperatorPosi++;
                             relationalOperators.Add(new List<char>());
                         }
-                        else {
+                        else
+                        {
                             errorMessage += $" ==>> bad formation of relational operator in position (Row, Column):\t ({line}, {column})\n\n";
+                            errorQueue.Enqueue(errorRelationalOperatorTokenGenerator(ch, line, column));
+                            isValid = false;
                         }
                     }
                     else if (ch == '&')
@@ -259,14 +280,16 @@ namespace C__.AnalizadorLexico
                         else
                         {
                             errorMessage += $" ==>> bad formation of relational operator in position (Row, Column):\t ({line}, {column})\n\n";
+                            errorQueue.Enqueue(errorRelationalOperatorTokenGenerator(ch, line, column));
+                            isValid = false;
                         }
                     }
                 }
                 else
                 {
                     errorMessage += $" ==>> Invalid character in source code:\t{ch}\t\t Position(Row, Column):\t ({line}, {column})";
+                    errorQueue.Enqueue(errorCharacterTokenGenerator(ch, line, column));
                     isValid = false;
-                    break;
                 }
                 column++;
             } //End for
@@ -278,8 +301,7 @@ namespace C__.AnalizadorLexico
             }
             else
             {
-                return null;
-                // Coordinate with team
+                return errorQueue;
             }
         }
 
@@ -289,7 +311,7 @@ namespace C__.AnalizadorLexico
         // FUNCTIONS
         // Generatation of Tokens //
 
-        private Token keywordOrIdentifierTokenGenerator( List<char> word, int line, int column ) //Function to separte and store identifiers from keywords
+        private Token keywordOrIdentifierTokenGenerator(List<char> word, int line, int column) //Function to separte and store identifiers from keywords
         {
             string w = "";
             Token token = new Token();
@@ -303,10 +325,10 @@ namespace C__.AnalizadorLexico
             if (dl.isKeyword(w))
             {
                 token.token = dl.getSimplifiedGrammar_Keyword(w);
-                token.tipoToken = "Keyword";
-                token.lexema = w;
-                token.linea = line;
-                token.columna = column;
+                token.tokenType = "Keyword";
+                token.lexeme = w;
+                token.line = line;
+                token.column = column;
             }
             else
             {
@@ -315,15 +337,21 @@ namespace C__.AnalizadorLexico
                     errorMessage += $"\nError detected in the formation of identifier";
                     errorMessage += $"An identifier can not have one or more upper case characters, review your code\n\n";
                     errorMessage += $"\n ==>>\t {w} \t\t Position(Row, Column):\t ({line}, {column})";
+
+                    token.token = "Lexycal Error";
+                    token.tokenType = "Bad identifier";
+                    token.lexeme = w;
+                    token.line = line;
+                    token.column = column;
                     isValid = false;
                 }
                 else
                 {
                     token.token = "i";
-                    token.tipoToken = "Identificador";
-                    token.lexema = w;
-                    token.linea = line;
-                    token.columna = column;
+                    token.tokenType = "Identifier";
+                    token.lexeme = w;
+                    token.line = line;
+                    token.column = column;
                 }
             }
             return token;
@@ -342,19 +370,38 @@ namespace C__.AnalizadorLexico
             if (w.Contains("."))
             {
                 token.token = "r";
-                token.tipoToken = "Numero Real";
-                token.lexema = w;
-                token.linea = line;
-                token.columna = column;
+                token.tokenType = "Real Number";
+                token.lexeme = w;
+                token.line = line;
+                token.column = column;
             }
             else
             {
                 token.token = "e";
-                token.tipoToken = "Numero Entero";
-                token.lexema = w;
-                token.linea = line;
-                token.columna = column;
+                token.tokenType = "Natural Number";
+                token.lexeme = w;
+                token.line = line;
+                token.column = column;
             }
+            return token;
+        }
+
+        private Token errorNumberTokenGenerator(List<Char> number, int line, int column)
+        {
+            string w = "";
+            Token token = new Token();
+
+            foreach (char ch in number)
+            {
+                w = w + ch.ToString();
+            }
+
+            token.token = "Lexycal Error";
+            token.tokenType = "Bad Number Formation";
+            token.lexeme = w;
+            token.line = line;
+            token.column = column;
+
             return token;
         }
 
@@ -376,10 +423,10 @@ namespace C__.AnalizadorLexico
             {
                 token.token = "o";
             }
-            token.tipoToken = "Operador";
-            token.lexema = w;
-            token.linea = line;
-            token.columna = column;
+            token.tokenType = "Operator";
+            token.lexeme = w;
+            token.line = line;
+            token.column = column;
             return token;
         }
 
@@ -393,13 +440,15 @@ namespace C__.AnalizadorLexico
                 w = w + ch.ToString();
             }
 
-            if(w == "{")
+            if (w == "{")
             {
                 token.token = "p";
-            }else if (w == "}")
+            }
+            else if (w == "}")
             {
                 token.token = "q";
-            }else if (w == "(")
+            }
+            else if (w == "(")
             {
                 token.token = "u";
             }
@@ -415,10 +464,10 @@ namespace C__.AnalizadorLexico
             {
                 token.token = "y";
             }
-            token.tipoToken = "Delimitador";
-            token.lexema = w;
-            token.linea = line;
-            token.columna = column;
+            token.tokenType = "Delimiter";
+            token.lexeme = w;
+            token.line = line;
+            token.column = column;
             return token;
         }
 
@@ -432,10 +481,11 @@ namespace C__.AnalizadorLexico
                 w = w + ch.ToString();
             }
 
-            if(w == "=")
+            if (w == "=")
             {
                 token.token = "k";
-            }else if (w == "||" || w == "&&")
+            }
+            else if (w == "||" || w == "&&")
             {
                 token.token = "c";
             }
@@ -443,10 +493,36 @@ namespace C__.AnalizadorLexico
             {
                 token.token = "d";
             }
-            token.tipoToken = "Operador Relacional";
-            token.lexema = w;
-            token.linea = line;
-            token.columna = column;
+            token.tokenType = "Relational Operator";
+            token.lexeme = w;
+            token.line = line;
+            token.column = column;
+            return token;
+        }
+
+        private Token errorRelationalOperatorTokenGenerator(char ch, int line, int column)
+        {
+            Token token = new Token();
+
+            token.token = "Lexycal Error";
+            token.tokenType = "Bad Relational Operator Formation";
+            token.lexeme = ch.ToString();
+            token.line = line;
+            token.column = column;
+
+            return token;
+        }
+
+        private Token errorCharacterTokenGenerator(char ch, int line, int column)
+        {
+            Token token = new Token();
+
+            token.token = "Lexycal Error";
+            token.tokenType = "Invalid Character";
+            token.lexeme = ch.ToString();
+            token.line = line;
+            token.column = column;
+
             return token;
         }
 
@@ -488,7 +564,6 @@ namespace C__.AnalizadorLexico
             deleteLastElement(relationalOperators);
             deleteLastElement(delimiters);
         }
-
     }
 }
     

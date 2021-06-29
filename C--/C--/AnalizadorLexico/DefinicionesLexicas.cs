@@ -7,9 +7,7 @@ namespace C__.AnalizadorLexico
 {
     public class DefinicionesLexicas
     {
-
         // ===== Class that contains the necessary definitions of elements for the scanner ===== //
-
         public DefinicionesLexicas() { }  //Constructor
 
         // ------------------------- //
@@ -18,7 +16,7 @@ namespace C__.AnalizadorLexico
         //Definition of relational operators //
         public String[] listRelOperators = { "==", ">=", "<=", "=", ">", "<", "=!", "||", "&&" };
         //Definition of operators //
-        public String[] listOperators = { "+", "-", "*", "/", "**", "//", "++", "--"};
+        public String[] listOperators = { "+", "-", "*", "/", "**", "//", "++", "--" };
         //Definition of delimitators //
         public String[] listDelimiters = { "(", ")", "{", "}", ";", "," };
         //Definition of allowed chars
@@ -84,46 +82,44 @@ namespace C__.AnalizadorLexico
         // /------------------------- //
 
 
-        public string getSimplifiedGrammar_Keyword(string lexema)
+        public string getSimplifiedGrammar_Keyword(string lexeme)
         {
-            if (lexema == "Begin")
+            if (lexeme == "Begin")
             {
                 return "a";
             }
-            else if (lexema == "Boolean" || lexema == "True" || lexema == "False")
+            else if (lexeme == "Boolean" || lexeme == "True" || lexeme == "False")
             {
                 return "b";
             }
-            else if (lexema == "For")
+            else if (lexeme == "For")
             {
                 return "f";
             }
-            else if (lexema == "If")
+            else if (lexeme == "If")
             {
                 return "g";
             }
-            else if (lexema == "Else")
+            else if (lexeme == "Else")
             {
                 return "j";
             }
-            else if (lexema == "Int" || lexema == "Float" || lexema == "Char" || lexema == "String")
+            else if (lexeme == "Int" || lexeme == "Float" || lexeme == "Char" || lexeme == "String")
             {
                 return "t";
             }
-            else if (lexema == "While")
+            else if (lexeme == "While")
             {
                 return "w";
             }
-            else if (lexema == "End")
+            else if (lexeme == "End")
             {
                 return "z";
             }
-            else {
+            else
+            {
                 return "";
             }
-
         }
-
     }
-
 }
