@@ -13,6 +13,7 @@ namespace C__.UniversalModels
         public int column { get; set; }
         public Token()
         {
+            tokenType = "";
         }
     }
 }
