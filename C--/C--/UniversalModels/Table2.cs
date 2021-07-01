@@ -1,11 +1,10 @@
-﻿using SRL.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using Newtonsoft.Json;
 using System.IO;
 
-namespace SRL
+namespace C__.UniversalModels
 {
     class Table2
     {

@@ -89,14 +89,16 @@ namespace C__.AnalizadorSintactico
             }
             return pasosArbol;
         }
-        static public List<Stack<string>> LeerTokens(Queue<Token> cadena, Table table)
+        static public IpilaResult LeerTokens(Queue<Token> cadena, Table2 table)
         {
+            var colaerr = new Queue<string>();
             Queue<Expresion> expresions = new Queue<Expresion>();
             Stack<int> pila = new Stack<int>();
             Stack<string> pilastr = new Stack<string>();
             List<Stack<string>> pasosArbol = new List<Stack<string>>();
 
-            char s = cadena.Dequeue().token[0];
+            Token token= cadena.Dequeue();
+            char s = token.token[0];
 
             int estado = 0;
             string accionEstat = "";
@@ -107,6 +109,7 @@ namespace C__.AnalizadorSintactico
             pilastr.Push(estado.ToString()); // Anadimos 0 a las 2 pilas
             var clonPila = clonarPila(pilastr);
             pasosArbol.Add(clonPila); //Agregar a los pasos del arbol
+            
             while (true)
             {
                 estado = pila.Peek();
@@ -122,7 +125,8 @@ namespace C__.AnalizadorSintactico
                     clonPila = clonarPila(pilastr);
                     pasosArbol.Add(clonPila); //Agregar a los pasos del arbol
 
-                    s = cadena.Dequeue().token[0];
+                    token = cadena.Dequeue();
+                    s = token.token[0];
                 }
                 else if (accion == 'r')
                 {
@@ -141,6 +145,14 @@ namespace C__.AnalizadorSintactico
                     accionEstat = table.accion(estado, produccion.Head);//GOTO con el no terminal de la reduccion
                     accion = head(ref accionEstat);
 
+                    if (accion == '.')
+                    {
+                        colaerr.Enqueue($"Syntax Error: {token.token} | Line: {token.line} | column: {token.column}");
+                        return new PilaErrores() {
+                            errores = colaerr
+                        };
+                    }
+
                     pila.Push(Convert.ToInt32(accionEstat));//Meter el estado del goto a la pila
 
                     pilastr.Push(produccion.Head.ToString());
@@ -158,11 +170,18 @@ namespace C__.AnalizadorSintactico
                 }
                 else
                 {
-                    throw new Exception("La cadena no pertenece a la gramatica");
+                    colaerr.Enqueue($"Syntax Error: {token.token} | Line: {token.line} | column: {token.column}");
+                    return new PilaErrores()
+                    {
+                        errores = colaerr
+                    };
                 }
 
             }
-            return pasosArbol;
+            return new PilaDescomposicion
+            {
+                pasos = pasosArbol
+            };
         }
         static public char head(ref string s)
         {
