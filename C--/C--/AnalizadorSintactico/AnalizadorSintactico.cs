@@ -8,87 +8,6 @@ namespace C__.AnalizadorSintactico
 {
     class AnalizadorSintactico
     {
-        
-        static public List<Stack<string>> LeerCadenaFull(string cadena, Table table)
-        {
-            Queue<Expresion> expresions = new Queue<Expresion>();
-            Stack<int> pila = new Stack<int>();
-            Stack<string> pilastr = new Stack<string>();
-            List<Stack<string>> pasosArbol = new List<Stack<string>>();
-
-            char s = head(ref cadena);
-
-            int estado = 0;
-            int sigEstado = 0;
-            string accionEstat = "";
-            char accion = 's';
-            int numprod = 0;
-
-            pila.Push(estado);
-            pilastr.Push(estado.ToString()); // Anadimos 0 a las 2 pilas
-            var clonPila = clonarPila(pilastr);
-            pasosArbol.Add(clonPila); //Agregar a los pasos del arbol
-            while (true)
-            {
-                estado = pila.Peek();
-                accionEstat = table.accion(estado, s);  //accionEstado: s1,r4,g8
-                //Si no hay accion para s 
-                // pedir accion(estado,lambda)
-                // Si no hay accionEstat = ".."
-                // guardar en accionEstat
-                accion = head(ref accionEstat);
-
-                if (accion == 's')
-                {
-                    pila.Push(Convert.ToInt32(accionEstat));
-                    //Agregamos primero el simbolo y luego el estado
-                    pilastr.Push(s.ToString());
-                    pilastr.Push(accionEstat);
-                    clonPila = clonarPila(pilastr);
-                    pasosArbol.Add(clonPila); //Agregar a los pasos del arbol
-
-                    s = head(ref cadena);
-                }
-                else if (accion == 'r')
-                {
-                    numprod = Convert.ToInt32(accionEstat);//Accion estat no es estado sino numero de producion 
-                    Expresion produccion = table.grammar[numprod - 1];
-                    foreach (char c in produccion._RestBody) //Por cada elemento de la produccion sacamos estados de la pila
-                    {
-                        pila.Pop();
-                        //Quitamos 2 elementos de la pila compuesta
-                        pilastr.Pop();
-                        pilastr.Pop();
-                    }
-
-                    estado = pila.Peek(); //estado en la parte superior de la pila
-
-                    accionEstat = table.accion(estado, produccion.Head);//GOTO con el no terminal de la reduccion
-                    accion = head(ref accionEstat);
-
-                    pila.Push(Convert.ToInt32(accionEstat));//Meter el estado del goto a la pila
-
-                    pilastr.Push(produccion.Head.ToString());
-                    pilastr.Push(accionEstat);//Meter a la pila compuesta Primero el Noterminal de la red y luego el estado
-
-                    clonPila = clonarPila(pilastr);
-                    pasosArbol.Add(clonPila); //Agregar a los pasos del arbol
-
-                    expresions.Enqueue(produccion);//Metemos la produccion de esta reduccion al historial de reducciones
-                }
-                else if (accion == 'A')
-                {
-                    Console.WriteLine("Cadena aceptada");
-                    break;
-                }
-                else
-                {
-                    throw new Exception("La cadena no pertenece a la gramatica");
-                }
-
-            }
-            return pasosArbol;
-        }
         static public IpilaResult LeerTokens(Queue<Token> cadena, Table2 table)
         {
             var colaerr = new Queue<string>();
@@ -212,6 +131,61 @@ namespace C__.AnalizadorSintactico
                 clon.Push(elem);
             }
             return clon;
+        }
+        private void PanicMode(Stack<int> pila, Stack<Token> cadena)
+        {
+            while(true)
+            {
+                int estado = pila.Pop();
+                if (estado == 2)
+                {
+                    foreach (Token tok in cadena)
+                    {
+                        string c = tok.token;
+                        if (c == "q")
+                        {
+                            pila.Push(6);
+                            pila.Push(22);
+                            int i = 0;
+                            foreach(Token t in cadena)
+                            {
+                                string x = t.token;
+                                i++;
+                                if (x == "q")
+                                {
+                                    break;
+                                }
+                            }
+                            for(int n = 0; n < i, n++)
+                            {
+                                cadena.Pop();
+                            }
+                        }else if (c == "p" || c == "z")
+                        {
+                            pila.Push(6);
+                            pila.Push(22);
+                            int i = 0;
+                            foreach (Token t in cadena)
+                            {
+                                string x = t.token;
+                                i++;
+                                if (x == "y")
+                                {
+                                    break;
+                                }
+                            }
+                            for (int n = 0; n < i, n++)
+                            {
+                                cadena.Pop();
+                            }
+                        }
+                    }
+                }
+                else if (estado == 1)
+                {
+
+                }
+            }
         }
     }
 }
